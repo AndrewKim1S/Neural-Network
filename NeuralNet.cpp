@@ -84,7 +84,8 @@ std::vector<double> NeuralNet::getOutputs() {
 NeuralNet::~NeuralNet() {
 
 }
-		
+	
+/*
 // visual 
 // TODO move to renderer file
 void NeuralNet::renderNetwork(sf::RenderWindow* window) {
@@ -111,4 +112,4 @@ void NeuralNet::renderNetwork(sf::RenderWindow* window) {
 			window->draw(neuronShape);
 		}
 	}
-}
+}*/

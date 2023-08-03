@@ -1,5 +1,6 @@
 #include "NeuralNet.h"
 #include "include/EventManager.hpp"
+#include "include/Renderer.hpp"
 
 
 int main(int argc, char *argv[]) {
@@ -45,11 +46,15 @@ int main(int argc, char *argv[]) {
 		}
 	});
 
+	// rendering
+	sfml_ren::Renderer render(*window);
+
 	while(window->isOpen()) {
 
 		evm.processEvents();
 		window->clear();
-		neural_network.renderNetwork(window);
+		// neural_network.renderNetwork(window);
+		render.renderNetwork(neural_network.getNetworkPositions());
 
 		// render panel
 		window->draw(line, 3, sf::Lines);

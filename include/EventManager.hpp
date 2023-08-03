@@ -2,7 +2,7 @@
 
 /* Taken from John Buffer
  * https://github.com/johnBuffer/SFML-EventManager/blob/master/inlcude/event_manager.hpp
- */
+*/
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>

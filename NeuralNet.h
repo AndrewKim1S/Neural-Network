@@ -67,6 +67,9 @@ class NeuralNet {
 
 		// visual
 		void renderNetwork(sf::RenderWindow* window);
+		std::vector<std::vector<sf::Vector2f>> getNetworkPositions() const {
+			return _networkPositions;
+		}
 
 	private:
 		std::vector<Layer> _network;
