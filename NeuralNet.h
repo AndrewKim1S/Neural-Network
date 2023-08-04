@@ -45,7 +45,7 @@ class NeuralNet {
 					sum += prevLayer[i].getOutputValue() * weights[i];
 				}	
 				sum += _bias;
-				_outputValue = sum;
+				_outputValue = activationFunction(sum); // add activation function
 			}
 
 		private:
@@ -65,16 +65,23 @@ class NeuralNet {
 		void backPropogation(const std::vector<double> &targetValues);
 		std::vector<double> getOutputs();
 
-		// visual
-		void renderNetwork(sf::RenderWindow* window);
+		// visual & other
 		std::vector<std::vector<sf::Vector2f>> getNetworkPositions() const {
 			return _networkPositions;
+		}
+		std::vector<double> getNetworkWeights() const {
+			return _networkWeights;
+		}
+		std::vector<double> getAllOutputs() const {
+			return allNeuronOutputs;
 		}
 
 	private:
 		std::vector<Layer> _network;
-		std::map<Connection, Weight> weights;
+		std::map<Connection, Weight> _weights;
 		size_t _numLayers;
 
 		std::vector<std::vector<sf::Vector2f>> _networkPositions;
+		std::vector<double> _networkWeights;
+		std::vector<double> allNeuronOutputs;
 };
