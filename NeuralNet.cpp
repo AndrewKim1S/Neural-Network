@@ -75,8 +75,66 @@ void NeuralNet::feedForward(const std::vector<double> &inputs) {
 	allNeuronOutputs = std::move(outputs);
 }
 
+// TODO
 void NeuralNet::backPropogation(const std::vector<double> &targetValues) {
+	// calculate cost 
+	double cost = 0;
+	for(size_t i = 0; i < targetValues.size(); i++) {
+		double error = targetValues[i] - _network[_network.size()-1][i].getOutputValue();
+		cost += error * error;
+	}
 
+	// output layer gradient calculation 
+	Layer &outputLayer = _network.back();
+	for(size_t n = 0; n < outputLayer.size(); n++) {
+		outputLayer[n].calculateOutputGradient(targetValues[n]);
+	}
+
+	// calculate the sum of the errors we feed 
+	auto sumErrorsFed = [this](Layer &nextLayer, std::pair<int, int> currentNeuron){
+		double sum = 0.0;
+		std::pair<int, int> connecting;
+		connecting.first = currentNeuron.first +1;
+		for(size_t n = 0; n < nextLayer.size(); n++) {
+			connecting.second = n;
+			
+			auto w = _weights.find(Connection(currentNeuron, connecting));
+			
+			sum += w->second.weight * nextLayer[n].getGradient();
+		}
+		return sum;
+	};
+
+	// hidden layers gradient calculation
+	for(size_t layer = _network.size() -2; layer > 0; layer--) {
+		Layer &hiddenLayer = _network[layer];
+		Layer &nextLayer = _network[layer+1];
+		for(size_t n = 0; n < hiddenLayer.size(); n++) {
+			std::pair<int, int> currentNeuron {layer, n};
+			hiddenLayer[n].calculateHiddenGradient(sumErrorsFed(nextLayer, currentNeuron));
+		}
+	}
+
+	auto updateConnections = [this](Layer &prevLayer, std::pair<int, int> current) {
+		std::pair<int, int> connecting;
+		connecting.first = current.first-1;
+		for(size_t n = 0; n < prevLayer.size(); n++) {
+			connecting.second = n;
+			auto w = _weights.find(Connection(connecting, current));
+			w->second.weight += 0.1;
+			_network[current.first][current.second].
+				changeBias(_learningRate * _network[current.first][current.second].getGradient());
+		}
+	};
+
+	// Update weights & biases appropriately
+	for(size_t layer = _network.size() - 1; layer > 0; layer--) {
+		Layer &prevLayer = _network[layer-1];
+		for(size_t n = 0; n < _network[layer].size(); n++) {
+			std::pair<int, int> currentNeuron {layer, n};
+			updateConnections(prevLayer, currentNeuron);
+		}
+	}
 }
 		
 std::vector<double> NeuralNet::getOutputs() {

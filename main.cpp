@@ -37,8 +37,12 @@ int main(int argc, char *argv[]) {
 
 	// Forward Propogation 
 	std::vector<double> testInput;
-	testInput.push_back(5);
-	testInput.push_back(3);
+	testInput.push_back(1);
+	testInput.push_back(0);
+	std::vector<double> testOutput;
+	testOutput.push_back(1.0);
+	testOutput.push_back(0.0);
+	testOutput.push_back(0.0);
 	evm.addKeyPressedCallback(sf::Keyboard::F,
 		[&](const sf::Event &){ 
 		std::cout << "-----------Forward Propogation----------" << std::endl; 
@@ -57,6 +61,7 @@ int main(int argc, char *argv[]) {
 		for(double r : results) {
 			std::cout << r << std::endl;
 		}
+		neural_network.backPropogation(testOutput);
 	});
 
 	// rendering
