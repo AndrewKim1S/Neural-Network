@@ -9,8 +9,8 @@ int main(int argc, char *argv[]) {
 
 	std::vector<int> topology;
 	topology.push_back(2);
-	topology.push_back(3);
-	topology.push_back(3);
+	topology.push_back(2);
+	topology.push_back(1);
 
 	sf::Vector2u windowSize {800, 600};
 	sf::RenderWindow* window = 
@@ -36,16 +36,46 @@ int main(int argc, char *argv[]) {
 		[&](const sf::Event &){ window->close(); });
 
 	// Forward Propogation 
-	std::vector<double> testInput;
-	testInput.push_back(1);
-	testInput.push_back(0);
-	std::vector<double> testOutput;
-	testOutput.push_back(1.0);
-	testOutput.push_back(0.0);
-	testOutput.push_back(0.0);
-	evm.addKeyPressedCallback(sf::Keyboard::F,
-		[&](const sf::Event &){ 
+	// Example for training XOR problem
+	typedef std::vector<std::vector<double>> trainingData;
+	trainingData input;
+	std::vector<double> testInput1;
+	testInput1.push_back(1);
+	testInput1.push_back(0);
+	std::vector<double> testInput2;
+	testInput2.push_back(1);
+	testInput2.push_back(1);
+	std::vector<double> testInput3;
+	testInput3.push_back(0);
+	testInput3.push_back(1);
+	std::vector<double> testInput4;
+	testInput4.push_back(0);
+	testInput4.push_back(0);
+	input.push_back(testInput1);
+	input.push_back(testInput2);
+	input.push_back(testInput3);
+	input.push_back(testInput4);
+
+	trainingData output;
+	std::vector<double> testOutput1;
+	testOutput1.push_back(1.0);
+	std::vector<double> testOutput2;
+	testOutput2.push_back(0.0);
+	std::vector<double> testOutput3;
+	testOutput3.push_back(1.0);
+	std::vector<double> testOutput4;
+	testOutput4.push_back(0.0);
+	output.push_back(testOutput1);
+	output.push_back(testOutput2);
+	output.push_back(testOutput3);
+	output.push_back(testOutput4);
+	
+	auto train = [&](){
 		std::cout << "-----------Forward Propogation----------" << std::endl; 
+		int index = rand() % 4;
+		std::vector<double> testOutput = output[index];
+		std::vector<double> testInput = input[index];
+		
 		std::cout << "---Inputs---" << std::endl;
 		for(double x : testInput) {
 			std::cout << x << std::endl;
@@ -62,11 +92,18 @@ int main(int argc, char *argv[]) {
 			std::cout << r << std::endl;
 		}
 		neural_network.backPropogation(testOutput);
+	};
+
+	evm.addKeyPressedCallback(sf::Keyboard::F,
+		[&](const sf::Event &){ 
+		train();
 	});
 
+	
 	// rendering
 	sfml_ren::Renderer render(*window);
 
+	int iteration = 0;
 	while(window->isOpen()) {
 
 		evm.processEvents();
@@ -78,9 +115,10 @@ int main(int argc, char *argv[]) {
 			neural_network.getNetworkWeights(),
 			neural_network.getAllOutputs());
 
-
-		// render panel
-		// window->draw(line, 3, sf::Lines);
+		if(iteration < 500000) {
+			train();
+			iteration ++;
+		}
 
 		window->display();
 	}

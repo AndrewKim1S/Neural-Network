@@ -121,7 +121,9 @@ void NeuralNet::backPropogation(const std::vector<double> &targetValues) {
 		for(size_t n = 0; n < prevLayer.size(); n++) {
 			connecting.second = n;
 			auto w = _weights.find(Connection(connecting, current));
-			w->second.weight += 0.1;
+			w->second.weight += _learningRate * 
+				_network[current.first][current.second].getGradient() * 
+				_network[connecting.first][connecting.second].getOutputValue();
 			_network[current.first][current.second].
 				changeBias(_learningRate * _network[current.first][current.second].getGradient());
 		}
