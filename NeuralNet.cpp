@@ -12,6 +12,8 @@ NeuralNet::NeuralNet(const std::vector<int> &topology, const sf::Vector2u window
 			neuronId ++;
 		}
 	}
+	_numNeurons = neuronId;
+	_networkBiases = std::vector<double>(_numNeurons, 0.0);
 
 	// Randomize Weights
 	for(size_t i = 0; i < _network.size(); i++) {
@@ -22,7 +24,6 @@ NeuralNet::NeuralNet(const std::vector<int> &topology, const sf::Vector2u window
 					std::pair<int, int> to {i+1, j};
 					Weight w;
 					w.weight = ((double)rand()) / RAND_MAX;
-					//
 					_networkWeights.push_back(w.weight);
 					_weights[std::pair<std::pair<int,int>, std::pair<int, int>>(from, to)] = w;
 				}
@@ -31,6 +32,7 @@ NeuralNet::NeuralNet(const std::vector<int> &topology, const sf::Vector2u window
 	}
 
 	// Neuron rendering positions
+	// TODO Remove SFML dependencies
 	float radius = 40;
 	float neuronWidth = 80.f + radius;
 	float layerWidth = 120 + radius;
@@ -75,7 +77,6 @@ void NeuralNet::feedForward(const std::vector<double> &inputs) {
 	allNeuronOutputs = std::move(outputs);
 }
 
-// TODO
 void NeuralNet::backPropogation(const std::vector<double> &targetValues) {
 	// calculate cost 
 	double cost = 0;
@@ -147,6 +148,27 @@ std::vector<double> NeuralNet::getOutputs() {
 	return outputs;
 }
 
+std::istream &operator>>(std::istream &is, NeuralNet &network) {
+		
+	return is;
+}
+
+std::ostream& operator<<(std::ostream &out, const NeuralNet &network) {
+	out << "Weights\n";
+	for(auto it = network._weights.begin(); it != network._weights.end(); it++) {
+		out << it->first.first.first << "," << it->first.first.second << " " <<
+			it->first.second.first << "," << it->first.second.second << " " << 
+			it->second.weight << "\n";
+	}
+	out << "Biases\n";
+	for(auto it = network._networkBiases.begin(); 
+		it != network._networkBiases.end(); it++) {
+		out << *it << "\n";
+	}
+	return out;
+}
+
 NeuralNet::~NeuralNet() {
 
 }
+

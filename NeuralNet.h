@@ -5,6 +5,7 @@
 #include <map>
 #include <math.h>
 
+// TODO Remove - only for visualization tool
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -20,7 +21,7 @@ class NeuralNet {
 	typedef std::vector<Neuron> Layer;
 	typedef std::pair<std::pair<int,int>, std::pair<int, int>> Connection; 
 	
-	// Neuron
+	// Neuron class
 	class Neuron {
 		public:
 			size_t _id;
@@ -45,6 +46,10 @@ class NeuralNet {
 
 			void changeBias(double b) {
 				_bias += b;
+			}
+
+			double getBias() {
+				return _bias;
 			}
 
 			void feedForward(Layer& prevLayer, std::vector<double>& weights) {
@@ -79,18 +84,22 @@ class NeuralNet {
 			double _gradient;
 	};
 
+
 	public:
 		NeuralNet(const std::vector<int> &topology, const sf::Vector2u windowSize);
 		~NeuralNet();
 
 		void feedForward(const std::vector<double> &inputs);
 		void backPropogation(const std::vector<double> &targetValues);
+
 		std::vector<double> getOutputs();
 
-		// visual & other
+		// Return neuron positions for visual purposes
 		std::vector<std::vector<sf::Vector2f>> getNetworkPositions() const {
 			return _networkPositions;
 		}
+
+		// Return network weights
 		std::vector<double> getNetworkWeights() {
 			_networkWeights.clear();
 			for(size_t i = 0; i < _network.size(); i++) {
@@ -108,18 +117,39 @@ class NeuralNet {
 			return _networkWeights;
 		}
 
+		// Return network biases
+		std::vector<double> getNetworkBiases() {
+			_networkBiases.clear();
+			for(size_t i = 0; i < _network.size(); i++) {
+				for(size_t k = 0; k < _network[i].size(); k++) {
+					_networkBiases.push_back(_network[i][k].getBias());
+				}
+			}
+			return _networkBiases;
+		}
+
 		std::vector<double> getAllOutputs() const {
 			return allNeuronOutputs;
 		}
 
+		// file save/load
+		friend std::istream &operator>>(std::istream &is, NeuralNet &network);
+		friend std::ostream &operator<<(std::ostream &out, const NeuralNet &network); 
+			
 	private:
 		std::vector<Layer> _network;
 		std::map<Connection, Weight> _weights;
+
 		size_t _numLayers;
+		size_t _numNeurons;
 
 		double _learningRate = 0.1;
 
-		std::vector<std::vector<sf::Vector2f>> _networkPositions;
 		std::vector<double> _networkWeights;
+		std::vector<double> _networkBiases;
 		std::vector<double> allNeuronOutputs;
+
+		// TODO can remove 
+		std::vector<std::vector<sf::Vector2f>> _networkPositions;
 };
+

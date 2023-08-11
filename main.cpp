@@ -1,4 +1,5 @@
 #include "NeuralNet.h"
+#include <fstream>
 #include "include/EventManager.hpp"
 #include "include/Renderer.hpp"
 
@@ -7,26 +8,26 @@ int main(int argc, char *argv[]) {
 
 	srand(static_cast<unsigned>(time(0)));
 
+	// network topology
 	std::vector<int> topology;
 	topology.push_back(2);
 	topology.push_back(2);
 	topology.push_back(1);
 
+	// window
 	sf::Vector2u windowSize {800, 600};
 	sf::RenderWindow* window = 
 		new sf::RenderWindow(sf::VideoMode(windowSize.x, windowSize.y), "Neural Network");
 	window->setPosition(sf::Vector2i(900, 100));
 	
-
 	// TODO Panel line consider new window instead
-	//const float panelX = windowSize.x - (windowSize.x * 0.3);
-	/*
-	sf::Vertex line[] = {
-		sf::Vertex(sf::Vector2f(panelX, 0), sf::Color::White),
-		sf::Vertex(sf::Vector2f(panelX, windowSize.y), sf::Color::White)
-	};*/
-	
 	NeuralNet neural_network { NeuralNet(topology, windowSize) };
+	
+	// rendering
+	sfml_ren::Renderer render(*window);
+
+	// file 
+	std::ofstream weightsFile;
 
 	// event handling & key bindings
 	sfml_evm::EventManager evm(*window, true);
@@ -34,6 +35,15 @@ int main(int argc, char *argv[]) {
 		[&](const sf::Event &){ window->close(); });
 	evm.addKeyPressedCallback(sf::Keyboard::Escape, 
 		[&](const sf::Event &){ window->close(); });
+	evm.addKeyPressedCallback(sf::Keyboard::F,
+		[&](const sf::Event &){
+			neural_network.getNetworkBiases();
+			neural_network.getNetworkWeights();
+			std::cout << "Saved weights" << std::endl;
+			weightsFile.open("weights.txt");
+			weightsFile << neural_network;
+			weightsFile.close();
+		});
 
 	// Forward Propogation 
 	// Example for training XOR problem
@@ -69,60 +79,72 @@ int main(int argc, char *argv[]) {
 	output.push_back(testOutput2);
 	output.push_back(testOutput3);
 	output.push_back(testOutput4);
-	
+
+	// training function
 	auto train = [&](){
-		std::cout << "-----------Forward Propogation----------" << std::endl; 
+		bool printInfo = false;
+		
 		int index = rand() % 4;
 		std::vector<double> testOutput = output[index];
 		std::vector<double> testInput = input[index];
 		
-		std::cout << "---Inputs---" << std::endl;
-		for(double x : testInput) {
-			std::cout << x << std::endl;
+		if(printInfo) {
+			std::cout << "-----------Forward Propogation----------" << std::endl; 
+			std::cout << "---Inputs---" << std::endl;
+			for(double x : testInput) {
+				std::cout << x << std::endl;
+			}
+				
+			std::cout << "---Weights---" << std::endl;
+			std::vector<double> cpyW = std::move(neural_network.getNetworkWeights());
+			for(double x : cpyW){
+				std::cout << x << std::endl;
+			}
+			
+			std::cout << "---Biases---" << std::endl;
+			std::vector<double> cpyB = std::move(neural_network.getNetworkBiases());
+			for(double x : cpyB){
+				std::cout << x << std::endl;
+			}
+			
+			std::cout << "---Results---" << std::endl;
+			std::vector<double> results = std::move(neural_network.getOutputs());
+			for(double r : results) {
+				std::cout << r << std::endl;
+			}
 		}
-		std::cout << "---Weights---" << std::endl;
-		std::vector<double> cpy = std::move(neural_network.getNetworkWeights());
-		for(double x : cpy){
-			std::cout << x << std::endl;
-		}
+
 		neural_network.feedForward(testInput);
-		std::cout << "---Results---" << std::endl;
-		std::vector<double> results = std::move(neural_network.getOutputs());
-		for(double r : results) {
-			std::cout << r << std::endl;
-		}
 		neural_network.backPropogation(testOutput);
 	};
 
-	evm.addKeyPressedCallback(sf::Keyboard::F,
+	// training key bindings
+	int trainingIteration = 1000000;
+	evm.addKeyPressedCallback(sf::Keyboard::T,
 		[&](const sf::Event &){ 
-		train();
+		trainingIteration = 0;
 	});
 
-	
-	// rendering
-	sfml_ren::Renderer render(*window);
-
-	int iteration = 0;
 	while(window->isOpen()) {
 
 		evm.processEvents();
 		window->clear();
 		
 		// rendering the network topology
-		// neural_network.renderNetwork(window);  
 		render.renderNetwork(neural_network.getNetworkPositions(), 
 			neural_network.getNetworkWeights(),
 			neural_network.getAllOutputs());
 
-		if(iteration < 500000) {
+		// Check if training
+		if(trainingIteration < 100000) {
 			train();
-			iteration ++;
+			trainingIteration ++;
 		}
 
 		window->display();
 	}
 
+	// when the program ends
 	delete window;
 
 	return 0;
