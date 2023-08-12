@@ -116,6 +116,7 @@ void NeuralNet::backPropogation(const std::vector<double> &targetValues) {
 		}
 	}
 
+	// lamda for updating connections
 	auto updateConnections = [this](Layer &prevLayer, std::pair<int, int> current) {
 		std::pair<int, int> connecting;
 		connecting.first = current.first-1;
@@ -139,7 +140,8 @@ void NeuralNet::backPropogation(const std::vector<double> &targetValues) {
 		}
 	}
 }
-		
+	
+// return network outputs
 std::vector<double> NeuralNet::getOutputs() {
 	std::vector<double> outputs;
 	for(size_t i = 0; i < _network[_network.size()-1].size(); i++) {
@@ -148,19 +150,58 @@ std::vector<double> NeuralNet::getOutputs() {
 	return outputs;
 }
 
+// load network parameters into the network
 std::istream &operator>>(std::istream &is, NeuralNet &network) {
+	std::string line;
+	network._networkWeights.clear();
+	network._networkBiases.clear();
+	size_t neuronIndex = 0;
+	while(std::getline(is, line)) {
+		std::stringstream ss(line);
+		std::string token;
+		std::vector<std::string> tokens;
+		while(std::getline(ss, token, ' ')) {
+			tokens.push_back(token);
+		}
 		
+		if(tokens.size() == 3) {
+			int a = std::stoi(tokens[0].substr(0,1));
+			int b = std::stoi(tokens[0].substr(2,3));
+			int c = std::stoi(tokens[1].substr(0,1));
+			int d = std::stoi(tokens[1].substr(2,3));
+			std::pair<int,int> from {a,b};
+			std::pair<int,int> to {c,d};
+			std::pair<std::pair<int,int>,std::pair<int,int>> connection {from, to};
+			NeuralNet::Weight w;
+			w.weight = std::stod(tokens[2]);
+			network._weights[connection] = w;
+			network._networkWeights.push_back(w.weight);
+		} 
+		else {
+			double bias = std::stod(tokens[0]);
+			size_t index = 0;
+			for(size_t i = 0; i < network._network.size(); i++) {
+				for(size_t j = 0; j < network._network[i].size(); j++) {
+					if(index == neuronIndex) {
+						network._network[i][j].setBias(bias);
+					}
+					index++;
+				}
+			}
+			neuronIndex++;
+			network._networkBiases.push_back(bias);
+		}
+	}
 	return is;
 }
 
+// save network parameters to a file
 std::ostream& operator<<(std::ostream &out, const NeuralNet &network) {
-	out << "Weights\n";
 	for(auto it = network._weights.begin(); it != network._weights.end(); it++) {
 		out << it->first.first.first << "," << it->first.first.second << " " <<
 			it->first.second.first << "," << it->first.second.second << " " << 
 			it->second.weight << "\n";
 	}
-	out << "Biases\n";
 	for(auto it = network._networkBiases.begin(); 
 		it != network._networkBiases.end(); it++) {
 		out << *it << "\n";

@@ -4,6 +4,8 @@
 #include <vector>
 #include <map>
 #include <math.h>
+#include <string>
+#include <sstream>
 
 // TODO Remove - only for visualization tool
 #include <SFML/Window.hpp>
@@ -46,6 +48,10 @@ class NeuralNet {
 
 			void changeBias(double b) {
 				_bias += b;
+			}
+
+			void setBias(double b) {
+				_bias = b;
 			}
 
 			double getBias() {

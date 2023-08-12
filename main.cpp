@@ -3,6 +3,15 @@
 #include "include/EventManager.hpp"
 #include "include/Renderer.hpp"
 
+/*
+ * Program key bindings
+ * ESC - close program
+ * S - save network parameters to file
+ * L - load network parameters from file
+ * T - train network on 100000 iterations
+ * R - run network 
+*/
+
 
 int main(int argc, char *argv[]) {
 
@@ -27,7 +36,8 @@ int main(int argc, char *argv[]) {
 	sfml_ren::Renderer render(*window);
 
 	// file 
-	std::ofstream weightsFile;
+	std::ofstream outfile;
+	std::ifstream infile;
 
 	// event handling & key bindings
 	sfml_evm::EventManager evm(*window, true);
@@ -35,14 +45,22 @@ int main(int argc, char *argv[]) {
 		[&](const sf::Event &){ window->close(); });
 	evm.addKeyPressedCallback(sf::Keyboard::Escape, 
 		[&](const sf::Event &){ window->close(); });
-	evm.addKeyPressedCallback(sf::Keyboard::F,
+	// neural network saving and loading
+	evm.addKeyPressedCallback(sf::Keyboard::S,
 		[&](const sf::Event &){
 			neural_network.getNetworkBiases();
 			neural_network.getNetworkWeights();
-			std::cout << "Saved weights" << std::endl;
-			weightsFile.open("weights.txt");
-			weightsFile << neural_network;
-			weightsFile.close();
+			std::cout << "save network parameters" << std::endl;
+			outfile.open("weights.txt");
+			outfile << neural_network;
+			outfile.close();
+		});
+	evm.addKeyPressedCallback(sf::Keyboard::L,
+		[&](const sf::Event &){
+			std::cout << "load network parameters" << std::endl;
+			infile.open("weights.txt");
+			infile >> neural_network;
+			infile.close();
 		});
 
 	// Forward Propogation 
@@ -123,6 +141,10 @@ int main(int argc, char *argv[]) {
 	evm.addKeyPressedCallback(sf::Keyboard::T,
 		[&](const sf::Event &){ 
 		trainingIteration = 0;
+	});
+	evm.addKeyPressedCallback(sf::Keyboard::R,
+		[&](const sf::Event &){ 
+		train();
 	});
 
 	while(window->isOpen()) {
